@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PF ECR Calculator</title>
+<style>
+:root{--navy:#152943;--blue:#2563eb;--pale:#eef4ff;--bg:#f5f7fb;--line:#dfe6ef;--text:#172033;--muted:#64748b;--green:#13845b}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 Inter,Segoe UI,Arial,sans-serif}
+header{background:linear-gradient(120deg,#14263f,#234d7a);color:white;padding:26px max(22px,calc((100% - 1180px)/2))}
+.brand{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#b9d3f7;font-weight:700}.hero{display:flex;justify-content:space-between;gap:20px;align-items:center;flex-wrap:wrap}.hero h1{font-size:30px;margin:7px 0}.hero p{color:#d4e1f3;margin:0}.pill{border:1px solid #7898c1;border-radius:99px;padding:8px 12px;font-size:12px}
+main{max-width:1180px;margin:24px auto;padding:0 18px 45px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:18px}.stat,.panel{background:white;border:1px solid var(--line);border-radius:14px;box-shadow:0 3px 12px #182b4510}.stat{padding:17px}.stat .label{color:var(--muted);font-size:12px}.stat .value{font-size:24px;font-weight:750;margin-top:6px}.panel{padding:20px;margin-bottom:18px}.panel-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}.panel h2{font-size:17px;margin:0}.sub{color:var(--muted);font-size:12px;margin-top:4px}
+.controls{display:grid;grid-template-columns:repeat(4,minmax(130px,1fr));gap:12px}.field label{display:block;color:#475569;font-size:12px;font-weight:650;margin-bottom:6px}.field input,.field select{width:100%;border:1px solid #cbd5e1;border-radius:8px;padding:10px;background:white;color:var(--text);font:inherit}.field input:focus,.field select:focus{outline:2px solid #bfdbfe;border-color:var(--blue)}
+.actions{display:flex;gap:8px;flex-wrap:wrap}.btn{border:1px solid #cbd5e1;background:white;color:#1e293b;border-radius:8px;padding:9px 13px;font-weight:650;cursor:pointer;font:inherit}.btn.primary{background:var(--blue);color:white;border-color:var(--blue)}.btn:hover{filter:brightness(.97)}.btn:disabled{opacity:.5;cursor:not-allowed}
+.upload{background:#f8fbff;border:1px dashed #9bb5d4;border-radius:10px;padding:16px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}.upload strong{display:block}.upload small{color:var(--muted)}input[type=file]{max-width:100%}
+.note{padding:12px 14px;border-radius:9px;background:#fff8e8;border:1px solid #f2d49b;color:#78520b;font-size:12px;margin-top:14px}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:10px}table{border-collapse:collapse;width:100%;min-width:1050px;background:white}th{background:#f1f5f9;color:#475569;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.4px;white-space:nowrap}td,th{padding:11px 12px;border-bottom:1px solid #e8edf3}td{font-size:13px}tbody tr:last-child td{border-bottom:0}td input,td select{width:100%;min-width:88px;padding:7px;border:1px solid #d6dee8;border-radius:6px;font:inherit}td.money{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}.tag{display:inline-block;background:#eaf7f0;color:#13724d;padding:3px 7px;border-radius:99px;font-size:11px}.empty{text-align:center;padding:30px;color:var(--muted)}.footer{color:var(--muted);font-size:11px;text-align:center;padding:8px}
+@media(max-width:760px){.stats{grid-template-columns:repeat(2,1fr)}.controls{grid-template-columns:repeat(2,minmax(120px,1fr))}.hero h1{font-size:25px}.panel{padding:14px}}@media(max-width:420px){.controls{grid-template-columns:1fr}.stats .value{font-size:20px}}
+</style>
+</head>
+<body>
+<header><div class="hero"><div><div class="brand">Payroll tools · ECR workspace</div><h1>PF ECR Calculator</h1><p>Calculate contribution components, review employee records, and export a payroll-ready CSV.</p></div><div class="pill">● Local calculation · No data uploaded</div></div></header>
+<main>
+<section class="stats">
+<div class="stat"><div class="label">Employees</div><div class="value" id="statEmployees">0</div></div>
+<div class="stat"><div class="label">Total PF wages</div><div class="value" id="statWages">₹0.00</div></div>
+<div class="stat"><div class="label">Total MPF</div><div class="value" id="statMpf">₹0.00</div></div>
+<div class="stat"><div class="label">Total CPF</div><div class="value" id="statCpf">₹0.00</div></div>
+</section>
+<section class="panel">
+<div class="panel-head"><div><h2>Contribution rules</h2><div class="sub">Default rates can be adjusted for your payroll policy.</div></div><button class="btn" id="resetRates">Reset defaults</button></div>
+<div class="controls">
+<div class="field"><label for="mpfRate">MPF rate (%)</label><input id="mpfRate" type="number" min="0" step="0.01" value="12"></div>
+<div class="field"><label for="vpfRate">VPF rate (%)</label><input id="vpfRate" type="number" min="0" step="0.01" value="0"></div>
+<div class="field"><label for="cpfRate">CPF rate (%)</label><input id="cpfRate" type="number" min="0" step="0.01" value="3.67"></div>
+<div class="field"><label for="epsRate">EPS rate (%)</label><input id="epsRate" type="number" min="0" step="0.01" value="8.33"></div>
+<div class="field"><label for="pensionRate">Pension-member MPF rate (%)</label><input id="pensionRate" type="number" min="0" step="0.01" value="8.33"></div>
+<div class="field"><label for="cpfMode">Pension-member CPF rule</label><select id="cpfMode"><option value="manual">EPS − pension rate (provisional)</option><option value="standard">Use standard CPF rate</option><option value="zero">CPF = 0</option></select></div>
+<div class="field"><label for="rounding">Rounding</label><select id="rounding"><option value="2">2 decimal places</option><option value="0">Whole currency units</option></select></div>
+<div class="field"><label for="period">Payroll period (optional)</label><input id="period" placeholder="e.g. 2026-10"></div>
+</div>
+<div class="note"><strong>Rule to confirm before production use:</strong> “CPF = EPS − CPF” is ambiguous. This prototype uses <b>EPS amount − pension-member MPF amount</b> when “EPS − pension rate” is selected. Please confirm the intended formula and applicable ECR schema before filing. This tool is a calculator/export prototype, not an official portal.</div>
+</section>
+<section class="panel">
+<div class="panel-head"><div><h2>Upload employee records</h2><div class="sub">Add one employee manually or import a CSV for bulk calculations.</div></div><div class="actions"><button class="btn" id="downloadTemplate">Download CSV template</button><button class="btn primary" id="addEmployee">+ Add employee</button></div></div>
+<div class="upload"><div><strong>Bulk upload CSV</strong><small>Required columns: employee_id, name, pf_wages, pension_member. pension_member accepts Yes/No.</small></div><input type="file" id="csvFile" accept=".csv,text/csv"></div>
+<div class="sub" id="uploadStatus" aria-live="polite"></div>
+</section>
+<section class="panel">
+<div class="panel-head"><div><h2>Employee calculations</h2><div class="sub">Edit wages or pension status directly. Amounts recalculate automatically.</div></div><div class="actions"><button class="btn" id="clearAll">Clear all</button><button class="btn primary" id="exportCsv">Export ECR CSV</button></div></div>
+<div class="table-wrap"><table><thead><tr><th>Employee ID</th><th>Name</th><th>PF wages</th><th>Pension member?</th><th>MPF</th><th>VPF</th><th>CPF</th><th>EPS</th><th></th></tr></thead><tbody id="employeeRows"><tr><td colspan="9" class="empty">No employees yet. Add an employee or upload a CSV.</td></tr></tbody></table></div>
+<div class="sub" style="margin-top:10px">MPF rule: No → PF wages × standard MPF rate. Yes → PF wages × pension-member MPF rate. VPF, CPF and EPS use the configured rules above.</div>
+</section>
+<div class="footer">Prototype for internal review · Validate rates, eligibility, wage ceilings, rounding, and ECR field requirements with your payroll/compliance adviser.</div>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+let employees=[],nextId=1;
+const rateIds=['mpfRate','vpfRate','cpfRate','epsRate','pensionRate','cpfMode','rounding','period'];
+const defaults={mpfRate:'12',vpfRate:'0',cpfRate:'3.67',epsRate:'8.33',pensionRate:'8.33',cpfMode:'manual',rounding:'2',period:''};
+const num=id=>Math.max(0,Number($(id).value)||0);
+const money=n=>new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',minimumFractionDigits:Number($('rounding').value),maximumFractionDigits:Number($('rounding').value)}).format(n);
+const round=n=>{let p=10**Number($('rounding').value);return Math.round((n+Number.EPSILON)*p)/p};
+function calc(e){
+ const wages=Math.max(0,Number(e.pf_wages)||0),eps=round(wages*num('epsRate')/100);
+ const mpf=round(wages*(e.pension_member?num('pensionRate'):num('mpfRate'))/100);
+ const vpf=round(wages*num('vpfRate')/100);
+ let cpf;
+ if(e.pension_member&&$('cpfMode').value==='zero')cpf=0;
+ else if(e.pension_member&&$('cpfMode').value==='manual')cpf=round(eps-mpf);
+ else cpf=round(wages*num('cpfRate')/100);
+ return {...e,pf_wages:wages,mpf,vpf,cpf,eps};
+}
+function render(){
+ const rows=$('employeeRows');
+ if(!employees.length)rows.innerHTML='<tr><td colspan="9" class="empty">No employees yet. Add an employee or upload a CSV.</td></tr>';
+ else rows.innerHTML=employees.map((e,i)=>{let c=calc(e);return `<tr data-i="${i}">
+<td><input aria-label="Employee ID" data-k="employee_id" value="${esc(e.employee_id)}"></td>
+<td><input aria-label="Name" data-k="name" value="${esc(e.name)}"></td>
+<td><input aria-label="PF wages" data-k="pf_wages" type="number" min="0" step="0.01" value="${e.pf_wages}"></td>
+<td><select aria-label="Pension member" data-k="pension_member"><option value="false" ${!e.pension_member?'selected':''}>No</option><option value="true" ${e.pension_member?'selected':''}>Yes</option></select></td>
+<td class="money">${money(c.mpf)}</td><td class="money">${money(c.vpf)}</td><td class="money">${money(c.cpf)}</td><td class="money">${money(c.eps)}</td>
+<td><button class="btn" data-remove="${i}" aria-label="Remove employee">Remove</button></td></tr>`}).join('');
+ $('statEmployees').textContent=employees.length;
+ const totals=employees.map(calc);
+ $('statWages').textContent=money(totals.reduce((s,e)=>s+e.pf_wages,0));
+ $('statMpf').textContent=money(totals.reduce((s,e)=>s+e.mpf,0));
+ $('statCpf').textContent=money(totals.reduce((s,e)=>s+e.cpf,0));
+}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function add(e={}){employees.push({employee_id:e.employee_id||`EMP${String(nextId++).padStart(3,'0')}`,name:e.name||'',pf_wages:Math.max(0,Number(e.pf_wages)||0),pension_member:!!e.pension_member});render()}
+$('addEmployee').onclick=()=>add();
+$('resetRates').onclick=()=>{for(const [k,v] of Object.entries(defaults))$(k).value=v;render()};
+rateIds.forEach(id=>$(id).addEventListener('input',render));
+$('employeeRows').addEventListener('change',ev=>{let tr=ev.target.closest('tr');if(!tr)return;let i=Number(tr.dataset.i),k=ev.target.dataset.k;if(!k)return;let v=ev.target.value;if(k==='pf_wages')v=Math.max(0,Number(v)||0);if(k==='pension_member')v=v==='true';employees[i][k]=v;render()});
+$('employeeRows').addEventListener('click',ev=>{let b=ev.target.closest('[data-remove]');if(b){employees.splice(Number(b.dataset.remove),1);render()}});
+$('clearAll').onclick=()=>{if(employees.length&&confirm('Remove all employee records from this page?')){employees=[];render();$('uploadStatus').textContent='All employee rows cleared.'}};
+function csvParse(text){let rows=[],row=[],field='',quoted=false;for(let i=0;i<text.length;i++){let c=text[i];if(quoted){if(c==='"'&&text[i+1]==='"'){field+='"';i++}else if(c==='"')quoted=false;else field+=c}else{if(c==='"')quoted=true;else if(c===','){row.push(field);field=''}else if(c==='\n'){row.push(field);rows.push(row);row=[];field=''}else if(c!=='\r')field+=c}}if(field.length||row.length){row.push(field);rows.push(row)}return rows.filter(r=>r.some(x=>x.trim()!==''))}
+$('csvFile').addEventListener('change',async ev=>{const f=ev.target.files[0];if(!f)return;try{let data=csvParse(await f.text());if(data.length<2)throw Error('The CSV needs a header row and at least one employee.');let headers=data.shift().map(s=>s.trim().toLowerCase());let idx=k=>headers.indexOf(k);for(const k of ['employee_id','name','pf_wages','pension_member'])if(idx(k)<0)throw Error(`Missing required column: ${k}`);let imported=0;data.forEach(r=>{let wage=Number(r[idx('pf_wages')]);if(!Number.isFinite(wage)||wage<0)return;let p=String(r[idx('pension_member')]).trim().toLowerCase();employees.push({employee_id:r[idx('employee_id')]||`EMP${String(nextId++).padStart(3,'0')}`,name:r[idx('name')]||'',pf_wages:wage,pension_member:['yes','y','true','1'].includes(p)});imported++});render();$('uploadStatus').textContent=`Imported ${imported} employee record(s). Invalid wage rows were skipped.`}catch(err){$('uploadStatus').textContent='Upload error: '+err.message}ev.target.value=''});
+function makeCsv(records){return records.map(row=>row.map(v=>{let s=String(v??'');return /[",\n\r]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s}).join(',')).join('\r\n')}
+function download(name,content){const blob=new Blob([content],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.click();URL.revokeObjectURL(url)}
+$('downloadTemplate').onclick=()=>download('pf_ecr_template.csv',makeCsv([['employee_id','name','pf_wages','pension_member'],['EMP001','Sample Employee','20000','No'],['EMP002','Pension Member','25000','Yes']]));
+$('exportCsv').onclick=()=>{if(!employees.length){alert('Add or upload employees before exporting.');return}let header=['employee_id','name','pf_wages','pension_member','mpf','vpf','cpf','eps','payroll_period'];let rows=employees.map(e=>{let c=calc(e);return[c.employee_id,c.name,c.pf_wages,c.pension_member?'Yes':'No',c.mpf,c.vpf,c.cpf,c.eps,$('period').value]});download('pf_ecr_calculations.csv',makeCsv([header,...rows]))};
+render();
+</script>
+</body></html>
